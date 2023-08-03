@@ -11,7 +11,6 @@ public class BotService
 {
 	private static ApplicationDBContext _context = GetContext();
 	static ITelegramBotClient bot = new TelegramBotClient("YOUR_TOKEN_HERE");
-    		//static string groupId = "-906987643";
     		private static string groupId = "YOUR_GROUP_HERE";
     	public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
