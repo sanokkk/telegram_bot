@@ -10,9 +10,9 @@ namespace TelegramBot.Services;
 public class BotService
 {
 	private static ApplicationDBContext _context = GetContext();
-	static ITelegramBotClient bot = new TelegramBotClient("6543562600:AAEFKoiyX6bohbNoleUGZPeBWFReiDgMlpM");
+	static ITelegramBotClient bot = new TelegramBotClient("YOUR_TOKEN_HERE");
     		//static string groupId = "-906987643";
-    		private static string groupId = "-1001838930024";
+    		private static string groupId = "YOUR_GROUP_HERE";
     	public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
 	        if (update.Message is null || update.Message.Text is null || update.Message.From is null) 
