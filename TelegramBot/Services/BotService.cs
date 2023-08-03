@@ -1,18 +1,21 @@
+using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
+using TelegramBot.DAL;
+using TelegramBot.Domain.Models;
 
 namespace TelegramBot.Services;
 
 public class BotService
 {
-    static ITelegramBotClient bot = new TelegramBotClient("6543562600:AAEFKoiyX6bohbNoleUGZPeBWFReiDgMlpM");
+	private static ApplicationDBContext _context = GetContext();
+	static ITelegramBotClient bot = new TelegramBotClient("6543562600:AAEFKoiyX6bohbNoleUGZPeBWFReiDgMlpM");
     		//static string groupId = "-906987643";
     		private static string groupId = "-1001838930024";
-    		private static Dictionary<string, int> UsersIDs = new Dictionary<string, int>();
     	public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-    	{
-    		if (update.Message is null || update.Message.Text is null || update.Message.From is null) 
+        {
+	        if (update.Message is null || update.Message.Text is null || update.Message.From is null) 
     		{
     			return;
     		}
@@ -20,42 +23,50 @@ public class BotService
     		
     		if (update.Type == Telegram.Bot.Types.Enums.UpdateType.Message)
     		{
-    			var message = update.Message;
-    			if (message.Chat.Id.ToString() == groupId)
+	            var message = update.Message;
+	            Console.WriteLine($"From {message.From.Id}");
+
+    			if (message.Chat.Id.ToString() == groupId && !message.From.IsBot)
     			{
     				var thread = message.MessageThreadId;
     				if (thread is not null)
-    				{
-    					if (UsersIDs.ContainsValue(thread.Value))
-    					{
-    						
-    					}
-    					
-    				}
+                    {
+	                    var user = _context.Users.FirstOrDefault(x => x.ThreadId == thread);
+	                    if (user is not null)
+	                    {
+		                    await botClient
+			                    .SendTextMessageAsync(chatId: user.ChatId, text: message.Text, cancellationToken: cancellationToken);
+	                    }
+
+                    }
     			}
-    			if (message.Text.ToLower() == "/start")
-    			{
-    				await botClient.SendTextMessageAsync(chatId: groupId, $"{message?.From?.Username ?? message?.From?.FirstName} начал общение с ботом");
-    				return;
-    			}
+                else
+                {
+	                if (message.Text.ToLower() == "/start")
+	                {
+		                await botClient.SendTextMessageAsync(chatId: groupId, $"{message?.From?.Username ?? message?.From?.FirstName} начал общение с ботом");
+		                return;
+	                }
     			
-    			if (message.MessageId == 0 || message.From is null || message.From.Username == null)
-    				return;
-    			if (!UsersIDs.ContainsKey(message.From.Username))
-    			{
-    				var topic = await botClient.CreateForumTopicAsync(chatId: groupId, name: message.From.Username);
-    				UsersIDs.Add(message.From.Username, topic.MessageThreadId);
-    				await botClient.ForwardMessageAsync(chatId: groupId, messageThreadId: UsersIDs[message.From.Username], fromChatId: message?.From?.Id,messageId: message.MessageId);
-    				var chat = await botClient.GetChatAsync(groupId, cancellationToken);
-    			}
-    			else
-    			{
-    				await botClient.ForwardMessageAsync(chatId: groupId, messageThreadId: UsersIDs[message.From.Username], fromChatId: message?.From?.Id,messageId: message.MessageId);
-    				
-    			}
+	                if (message.MessageId == 0 || message.From is null || message.From.Username == null)
+		                return;
     			
+	                var userByName = _context.Users.FirstOrDefault(x => x.UserName == message.From.Username);
+	                if (userByName is null)
+	                {
+		                var topic = await botClient.CreateForumTopicAsync(chatId: groupId, name: message.From.Username);
+		                await AddUserToDb(message.Chat.Id, message.From.Username, topic.MessageThreadId);
+		                userByName = _context.Users.FirstOrDefault(x => x.UserName == message.From.Username);
+	                }
+	                await botClient
+		                .ForwardMessageAsync(
+			                chatId: groupId, 
+			                messageThreadId: userByName?.ThreadId, 
+			                fromChatId: message.Chat.Id,
+			                messageId: message.MessageId); 
+                }
     			
-    		}
+            }
     	}
 	    public static async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
 	    {
@@ -70,13 +81,38 @@ public class BotService
 		    {
 			    AllowedUpdates = { }, 
 		    };
+		    Console.WriteLine("Starting bot");
 		    bot.StartReceiving(
 			    HandleUpdateAsync,
 			    HandleErrorAsync,
 			    receiverOptions,
 			    cancellationToken
 		    );
-		    Console.ReadLine();
+		    
+		    
+	    }
+
+	    public static void StopBot()
+	    {
+		    Console.WriteLine("Stopping bot");
 		    bot.CloseAsync();
+	    }
+
+	    private static async Task AddUserToDb(long chat,string user,int thread)
+	    {
+		    _context.Users.Add(new Domain.Models.User()
+		    {
+				ChatId = chat,
+				UserName = user,
+				ThreadId = thread
+		    });
+		    await _context.SaveChangesAsync();
+	    }
+
+	    private static ApplicationDBContext GetContext()
+	    {
+		    var options = new DbContextOptionsBuilder<ApplicationDBContext>();
+		    options.UseNpgsql("UID=postgres;Password=1111;Host=localhost;Port=5432;Database=telegram;");
+		    return new ApplicationDBContext(options.Options);
 	    }
 }

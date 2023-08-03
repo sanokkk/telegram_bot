@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "14eUAXfxRmSR8zNbHxHBTs92xlUJaOYO9NpwP4BmWM+lIDKiAPwtg9FsHZyrC6M7BBO/ZthZ503NZPzP0XIPWQ==",
+  "dgSpecHash": "dDqNiH2xzBr8ZrweF34s76/fEPA7NJ/XSv8lkuXoMGg0JoPN6SqerrX5YFFxdxQSBrvNg4BOHMPtHBY0GkrhpQ==",
   "success": true,
   "projectFilePath": "/home/sanokkk/RiderProjects/telegram_bot/TelegramBot/TelegramBot.csproj",
   "expectedPackageFiles": [
@@ -35,7 +35,8 @@
     "/home/sanokkk/.nuget/packages/system.text.encodings.web/7.0.0/system.text.encodings.web.7.0.0.nupkg.sha512",
     "/home/sanokkk/.nuget/packages/system.text.json/7.0.0/system.text.json.7.0.0.nupkg.sha512",
     "/home/sanokkk/.nuget/packages/telegram.bot/19.0.0/telegram.bot.19.0.0.nupkg.sha512",
-    "/home/sanokkk/.nuget/packages/telegram.bots/5.9.0/telegram.bots.5.9.0.nupkg.sha512"
+    "/home/sanokkk/.nuget/packages/telegram.bots/5.9.0/telegram.bots.5.9.0.nupkg.sha512",
+    "/home/sanokkk/.nuget/packages/microsoft.netcore.app.host.linux-x64/6.0.20/microsoft.netcore.app.host.linux-x64.6.0.20.nupkg.sha512"
   ],
   "logs": []
 }
